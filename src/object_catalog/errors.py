@@ -3,3 +3,6 @@ class ObjectCatalogError(Exception):
 
 class InvalidItemError(ObjectCatalogError):
     pass
+
+class DuplicateError(ObjectCatalogError):
+    pass

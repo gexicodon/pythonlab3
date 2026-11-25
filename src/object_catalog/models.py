@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import date
 from re import fullmatch
 
-from src.object_catalog.errors import InvalidItemError
+from src.object_catalog.errors import DuplicateError, InvalidItemError
 from src.object_catalog.utils import time_format
 
 
@@ -50,7 +50,7 @@ class VideoItem(MediaItem):
         if self.duration_seconds < 0:
             raise InvalidItemError("Duration must be a not negative integer")
 
-        if not isinstance(self.resolution, str) or fullmatch(r"[1-9][0-9]+[xX][1-9][0-9]+", self.resolution) is None:
+        if not isinstance(self.resolution, str) or fullmatch(r"[1-9][0-9]*[xX][1-9][0-9]*", self.resolution) is None:
             raise InvalidItemError("Resolution must be a string like \"[WIDTH]x[HEIGHT]\"")
 
     def __str__(self) -> str:
@@ -92,5 +92,28 @@ class AudioItem(MediaItem):
         return "".join(parts)
 
 
+@dataclass
+class MediaCatalog:
+    data: dict[str, MediaItem]
+    categories: dict[str, list[str]]
+    names: dict[str, list[str]]
 
+    def __len__(self) -> int:
+        return len(self.data)
+    
+    def __iter__(self):
+        return iter(self.data.values())
+
+    def __contains__(self, item_id: str) -> bool:
+        return item_id in self.data
+
+    def add(self, item: MediaItem) -> None:
+        if not isinstance(item, MediaItem):
+            raise InvalidItemError("Trying to insert not a MediaObject in catalog")
+
+        if self.__contains__(item.id):
+            raise DuplicateError(f"Trying to insert object with existing id \"{item.id}\" in catalog")
+
+        self.data[item.id] = item
+            
 
